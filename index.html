@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathMaster - Addition & Multiplication Practice</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- KaTeX CSS & JS Engine -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- KaTeX Auto-Render Extension -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#16a34a',
+                            600: '#15803d',
+                            700: '#166534',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .katex-display {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0.25rem 0;
+            margin: 0.5rem 0;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Header Navigation -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- App Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-600 text-white p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10 shadow-md">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">MathMaster</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 block -mt-1 font-medium">Addition & Multiplication Practice Quiz</span>
+                </div>
+            </div>
+
+            <!-- Actions & Theme Toggle -->
+            <div class="flex items-center space-x-3">
+                <button onclick="generateClassroomTurnInCode()" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition-all shadow-sm">
+                    <i class="fa-solid fa-graduation-cap"></i> Turn In for Classroom
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none" title="Toggle Light/Dark Theme">
+                    <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col">
+        
+        <div id="student-view" class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+            <!-- Sidebar Navigation & Stats -->
+            <div class="lg:col-span-1 flex flex-col space-y-6">
+                <!-- Mastery Score Card -->
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xs uppercase font-bold text-gray-400 tracking-wider mb-3">Quiz Analytics</h3>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-3xl font-extrabold text-gray-900 dark:text-white" id="score-display">0 / 10</span>
+                        <span class="text-sm font-semibold px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full" id="accuracy-display">0%</span>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden mb-4">
+                        <div id="progress-bar-fill" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Direct Google Classroom Turn-In Button -->
+                    <button onclick="generateClassroomTurnInCode()" class="w-full py-2.5 px-3 mb-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-graduation-cap"></i> Copy Compact Grade Token
+                    </button>
+
+                    <!-- Advanced Stat Badges -->
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700/50 pt-3 mb-2">
+                        <div>
+                            <span class="block font-bold text-gray-800 dark:text-gray-200 text-sm" id="stat-solved">0</span> Solved
+                        </div>
+                        <div>
+                            <span class="block font-bold text-gray-800 dark:text-gray-200 text-sm" id="stat-failed">0</span> Exhausted
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700/50 pt-3">
+                        <div>
+                            <span class="block font-bold text-emerald-600 dark:text-emerald-400 text-sm" id="stat-total-time">0m 0s</span> Total Time
+                        </div>
+                        <div>
+                            <span class="block font-bold text-emerald-600 dark:text-emerald-400 text-sm" id="stat-avg-attempts">0.0</span> Avg Attempts
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem List Navigation -->
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 flex flex-col min-h-[300px]">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300">Quiz Questions</h3>
+                        <span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-md font-mono" id="problem-count-badge">10 items</span>
+                    </div>
+                    <div id="problem-list" class="space-y-2 overflow-y-auto flex-1 pr-1 max-h-[450px]">
+                        <!-- Dynamically populated problem items -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Problem Solving Workspace -->
+            <div class="lg:col-span-3 flex flex-col space-y-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 flex-1 flex flex-col justify-between">
+                    <div>
+                        <!-- Header & Meta info -->
+                        <div class="flex flex-wrap justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700 gap-2 mb-6">
+                            <div class="flex items-center space-x-2">
+                                <span id="current-problem-num" class="bg-emerald-600 text-white font-extrabold text-sm px-3 py-1 rounded-lg">Question 1</span>
+                                <span id="current-problem-topic" class="text-xs font-semibold px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md">Arithmetic</span>
+                            </div>
+                            
+                            <!-- Timer & Attempt Stats -->
+                            <div class="flex items-center space-x-4 text-xs font-semibold">
+                                <div class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-lg">
+                                    <i class="fa-regular fa-clock text-emerald-600"></i>
+                                    <span>Time spent: <strong id="current-item-timer" class="font-mono text-emerald-700 dark:text-emerald-400">00:00</strong></span>
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="text-gray-500 dark:text-gray-400">Attempts left:</span>
+                                    <div id="attempt-dots" class="flex space-x-1">
+                                        <span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>
+                                        <span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Problem Statement -->
+                        <div class="mb-8">
+                            <h4 class="text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Question</h4>
+                            <div id="problem-statement" class="text-lg sm:text-xl text-gray-800 dark:text-gray-100 leading-relaxed min-h-[60px] bg-gray-50/50 dark:bg-gray-900/30 p-5 rounded-xl border border-gray-100 dark:border-gray-800 whitespace-pre-line">
+                                <!-- Rendered problem will go here -->
+                            </div>
+                        </div>
+
+                        <!-- Hint Box (shown on attempt 1 failure) -->
+                        <div id="hint-box" class="hidden mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-amber-800 dark:text-amber-300 text-sm flex items-start space-x-3">
+                            <i class="fa-solid fa-lightbulb text-amber-500 text-lg mt-0.5"></i>
+                            <div>
+                                <strong class="font-semibold block mb-1">Attempt 1 Incorrect!</strong>
+                                <span id="hint-text">Double-check your addition and multiplication order. You have 1 attempt remaining.</span>
+                            </div>
+                        </div>
+
+                        <!-- Input Answer Form -->
+                        <div id="answer-form-container" class="mb-6 bg-gray-50 dark:bg-gray-900/50 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+                            <label for="student-answer" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Your Answer:</label>
+                            <form onsubmit="submitAnswer(event)" class="flex flex-col sm:flex-row gap-3">
+                                <div class="relative flex-1">
+                                    <input type="text" id="student-answer" autocomplete="off" placeholder="Enter numerical answer" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
+                                </div>
+                                <button type="submit" id="submit-btn" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-paper-plane"></i> Submit Answer
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Status Message Banner -->
+                        <div id="status-banner" class="hidden mb-6 p-4 rounded-xl text-sm font-medium flex items-center space-x-3">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <!-- Step-by-Step Solution Drawer -->
+                        <div id="solution-container" class="hidden border-t-2 border-dashed border-gray-200 dark:border-gray-700 pt-6">
+                            <div class="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 font-bold mb-3 text-lg">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                <span>Step-by-Step Solution</span>
+                            </div>
+                            <div id="solution-content" class="bg-gray-50 dark:bg-gray-900/60 p-5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 leading-relaxed overflow-x-auto text-sm sm:text-base whitespace-pre-line">
+                                <!-- Solution Rendered Here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav Controls -->
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-100 dark:border-gray-700 mt-6">
+                        <button onclick="navigateProblem(-1)" id="prev-btn" class="px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg text-sm transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Previous
+                        </button>
+                        <button onclick="navigateProblem(1)" id="next-btn" class="px-4 py-2 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-semibold rounded-lg text-sm transition-all flex items-center gap-2">
+                            Next <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Google Classroom Turn-In Modal -->
+    <div id="turnin-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-6 border border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700 mb-4">
+                <h3 class="text-md font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-emerald-600"></i> Compact Classroom Grade Token
+                </h3>
+                <button onclick="document.getElementById('turnin-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-600 dark:text-gray-300 mb-3 leading-relaxed">
+                Enter your name below. The generated token contains your final score, time per question, and attempt analytics in a compressed format.
+            </p>
+
+            <!-- First & Last Name Input Fields -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">First Name *</label>
+                    <input type="text" id="student-first-name" oninput="updateTurnInToken()" placeholder="Jane" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">Last Name *</label>
+                    <input type="text" id="student-last-name" oninput="updateTurnInToken()" placeholder="Doe" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <!-- Detailed Summary Stats inside Modal -->
+            <div id="token-stats-summary" class="bg-gray-50 dark:bg-gray-900/60 p-3 rounded-xl border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 mb-4 space-y-1 font-mono max-h-36 overflow-y-auto">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="relative mb-4">
+                <textarea id="turnin-code-text" readonly class="w-full p-3 font-mono text-xs bg-gray-900 text-emerald-400 rounded-xl outline-none resize-none border border-gray-700 min-h-[60px] select-all"></textarea>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="copyTurnInToken()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-copy"></i> Copy Token to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <!-- Application Logic -->
+    <script>
+        // 10 Easy Addition & Multiplication Quiz Questions
+        const problems = [
+            {
+                id: "math-1",
+                topic: "Basic Addition",
+                statement: "Calculate the sum:\n$$14 + 27$$",
+                answer: "41",
+                solution: "**Step-by-step Solution:**\n$$14 + 27 = 41$$\n\nAdd the ones column ($4 + 7 = 11$), then the tens column ($10 + 20 + 10 = 40$). Total = $41$."
+            },
+            {
+                id: "math-2",
+                topic: "Basic Multiplication",
+                statement: "Evaluate the product:\n$$6 \\times 8$$",
+                answer: "48",
+                solution: "**Step-by-step Solution:**\n$$6 \\times 8 = 48$$\n\nUsing basic multiplication facts, $6$ groups of $8$ equals $48$."
+            },
+            {
+                id: "math-3",
+                topic: "Addition",
+                statement: "Calculate the sum:\n$$35 + 49$$",
+                answer: "84",
+                solution: "**Step-by-step Solution:**\n$$35 + 49 = 84$$\n\nAdd $35 + 50 = 85$, then subtract $1$ to get $84$."
+            },
+            {
+                id: "math-4",
+                topic: "Multiplication",
+                statement: "Evaluate:\n$$7 \\times 9$$",
+                answer: "63",
+                solution: "**Step-by-step Solution:**\n$$7 \\times 9 = 63$$\n\nUsing the 9s pattern ($7 \\times 10 - 7 = 70 - 7 = 63$)."
+            },
+            {
+                id: "math-5",
+                topic: "Order of Operations",
+                statement: "Evaluate the expression:\n$$4 + 5 \\times 3$$",
+                answer: "19",
+                solution: "**Step-by-step Solution:**\nFollowing the order of operations (PEMDAS), perform multiplication before addition:\n1. Multiply first: $$5 \\times 3 = 15$$\n2. Add next: $$4 + 15 = 19$$"
+            },
+            {
+                id: "math-6",
+                topic: "Multiplication",
+                statement: "Calculate the product:\n$$12 \\times 5$$",
+                answer: "60",
+                solution: "**Step-by-step Solution:**\n$$12 \\times 5 = 60$$\n\n$10 \\times 5 = 50$ and $2 \\times 5 = 10$. Sum = $50 + 10 = 60$."
+            },
+            {
+                id: "math-7",
+                topic: "Order of Operations",
+                statement: "Calculate the result:\n$$8 \\times 4 + 12$$",
+                answer: "44",
+                solution: "**Step-by-step Solution:**\n1. Multiply first: $$8 \\times 4 = 32$$\n2. Add next: $$32 + 12 = 44$$"
+            },
+            {
+                id: "math-8",
+                topic: "Addition",
+                statement: "Find the sum:\n$$58 + 64$$",
+                answer: "122",
+                solution: "**Step-by-step Solution:**\n$$58 + 64 = 122$$\n\nAdd $50 + 60 = 110$ and $8 + 4 = 12$. Total = $110 + 12 = 122$."
+            },
+            {
+                id: "math-9",
+                topic: "Multiplication",
+                statement: "Evaluate:\n$$11 \\times 7$$",
+                answer: "77",
+                solution: "**Step-by-step Solution:**\n$$11 \\times 7 = 77$$\n\nAny single digit multiplied by $11$ repeats the digit."
+            },
+            {
+                id: "math-10",
+                topic: "Mixed Operations",
+                statement: "Evaluate the expression:\n$$6 \\times 6 + 9 \\times 2$$",
+                answer: "54",
+                solution: "**Step-by-step Solution:**\nPerform multiplications before adding:\n1. First product: $$6 \\times 6 = 36$$\n2. Second product: $$9 \\times 2 = 18$$\n3. Add results: $$36 + 18 = 54$$"
+            }
+        ];
+
+        let activeProblemIndex = 0;
+        let attemptsState = {};
+        let activeTimerInterval = null;
+
+        // Official KaTeX Typeset Engine Execution
+        function triggerKaTeXRendering(containerId, rawContent) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = rawContent || '';
+
+            if (typeof renderMathInElement === 'function') {
+                try {
+                    renderMathInElement(container, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    console.error("KaTeX rendering error:", e);
+                }
+            }
+        }
+
+        // Initialize App & Active Timer
+        window.addEventListener('DOMContentLoaded', () => {
+            initAttemptsState();
+            renderProblemList();
+            loadActiveProblem();
+            startQuestionTimer();
+        });
+
+        // Global Active Timer for time tracking
+        function startQuestionTimer() {
+            if (activeTimerInterval) clearInterval(activeTimerInterval);
+            activeTimerInterval = setInterval(() => {
+                if (document.hidden) return; // Pause timer if tab is inactive
+                const currentP = problems[activeProblemIndex];
+                if (currentP && attemptsState[currentP.id]) {
+                    const st = attemptsState[currentP.id];
+                    if (st.status === 'unattempted' || st.attemptsLeft === 1) {
+                        st.timeSpentSec = (st.timeSpentSec || 0) + 1;
+                        updateTimerDisplay(st.timeSpentSec);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(sec) {
+            const timerEl = document.getElementById('current-item-timer');
+            if (!timerEl) return;
+            const mins = Math.floor(sec / 60);
+            const secs = sec % 60;
+            timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function initAttemptsState() {
+            attemptsState = {};
+            problems.forEach(p => {
+                attemptsState[p.id] = {
+                    attemptsLeft: 2,
+                    attemptsUsed: 0,
+                    status: 'unattempted',
+                    userAnswer: '',
+                    timeSpentSec: 0
+                };
+            });
+        }
+
+        function renderProblemList() {
+            const listEl = document.getElementById('problem-list');
+            const countBadge = document.getElementById('problem-count-badge');
+            if (!listEl) return;
+
+            countBadge.textContent = `${problems.length} items`;
+            listEl.innerHTML = '';
+
+            problems.forEach((p, idx) => {
+                const st = attemptsState[p.id] || { status: 'unattempted', attemptsLeft: 2 };
+                const isSelected = idx === activeProblemIndex;
+
+                let badgeColor = 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+                let icon = '<i class="fa-regular fa-circle"></i>';
+
+                if (st.status === 'solved') {
+                    badgeColor = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
+                    icon = '<i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i>';
+                } else if (st.status === 'failed') {
+                    badgeColor = 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300';
+                    icon = '<i class="fa-solid fa-circle-xmark text-rose-600 dark:text-rose-400"></i>';
+                } else if (st.attemptsLeft === 1) {
+                    badgeColor = 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300';
+                    icon = '<i class="fa-solid fa-triangle-exclamation text-amber-600"></i>';
+                }
+
+                const btn = document.createElement('button');
+                btn.onclick = () => selectProblem(idx);
+                btn.className = `w-full text-left p-3 rounded-xl transition-all flex items-center justify-between border text-xs ${
+                    isSelected
+                        ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 font-bold text-emerald-700 dark:text-emerald-300 shadow-sm'
+                        : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300'
+                }`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2 truncate">
+                        ${icon}
+                        <span class="truncate">#${idx + 1} - ${p.topic || 'Problem'}</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] uppercase ${badgeColor} shrink-0">
+                        ${st.status === 'solved' ? 'Solved' : st.status === 'failed' ? 'Failed' : st.attemptsLeft === 1 ? '1 Left' : 'Ready'}
+                    </span>
+                `;
+                listEl.appendChild(btn);
+            });
+        }
+
+        function loadActiveProblem() {
+            if (problems.length === 0) return;
+            const p = problems[activeProblemIndex];
+            const st = attemptsState[p.id] || { status: 'unattempted', attemptsLeft: 2, userAnswer: '', timeSpentSec: 0 };
+
+            document.getElementById('current-problem-num').textContent = `Question ${activeProblemIndex + 1}`;
+            document.getElementById('current-problem-topic').textContent = p.topic || 'Math';
+
+            // Update item timer display
+            updateTimerDisplay(st.timeSpentSec || 0);
+
+            // KaTeX render for problem statement
+            triggerKaTeXRendering('problem-statement', p.statement);
+
+            // Attempt dots
+            const dotsContainer = document.getElementById('attempt-dots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < 2; i++) {
+                const dot = document.createElement('span');
+                const isFilled = i < st.attemptsLeft;
+                dot.className = `w-3 h-3 rounded-full inline-block transition-colors ${
+                    isFilled ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'
+                }`;
+                dotsContainer.appendChild(dot);
+            }
+
+            const inputEl = document.getElementById('student-answer');
+            const submitBtn = document.getElementById('submit-btn');
+            const hintBox = document.getElementById('hint-box');
+            const statusBanner = document.getElementById('status-banner');
+            const solContainer = document.getElementById('solution-container');
+
+            inputEl.value = st.userAnswer || '';
+            hintBox.classList.add('hidden');
+            statusBanner.classList.add('hidden');
+            solContainer.classList.add('hidden');
+
+            if (st.status === 'solved') {
+                inputEl.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.className = "px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg cursor-not-allowed opacity-90 flex items-center justify-center gap-2";
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Completed';
+
+                statusBanner.className = "mb-6 p-4 rounded-xl text-sm font-medium flex items-center space-x-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300";
+                statusBanner.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i><span>Correct! Solved in ${st.attemptsUsed} attempt(s) taking ${formatSecs(st.timeSpentSec)}.</span>`;
+                statusBanner.classList.remove('hidden');
+
+                triggerKaTeXRendering('solution-content', p.solution || 'No step-by-step solution provided.');
+                solContainer.classList.remove('hidden');
+            } else if (st.status === 'failed') {
+                inputEl.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.className = "px-6 py-3 bg-rose-600 text-white font-bold rounded-lg cursor-not-allowed opacity-90 flex items-center justify-center gap-2";
+                submitBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Exhausted';
+
+                statusBanner.className = "mb-6 p-4 rounded-xl text-sm font-medium flex items-center space-x-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300";
+                statusBanner.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i><span>0 attempts remaining after ${formatSecs(st.timeSpentSec)}. Review the solution below.</span>`;
+                statusBanner.classList.remove('hidden');
+
+                triggerKaTeXRendering('solution-content', p.solution || 'No step-by-step solution provided.');
+                solContainer.classList.remove('hidden');
+            } else {
+                inputEl.disabled = false;
+                submitBtn.disabled = false;
+                submitBtn.className = "px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2";
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Answer';
+
+                if (st.attemptsLeft === 1) {
+                    hintBox.classList.remove('hidden');
+                }
+            }
+
+            document.getElementById('prev-btn').disabled = activeProblemIndex === 0;
+            document.getElementById('next-btn').disabled = activeProblemIndex === problems.length - 1;
+
+            updateStats();
+        }
+
+        function selectProblem(index) {
+            if (index >= 0 && index < problems.length) {
+                activeProblemIndex = index;
+                renderProblemList();
+                loadActiveProblem();
+            }
+        }
+
+        function navigateProblem(direction) {
+            const nextIdx = activeProblemIndex + direction;
+            if (nextIdx >= 0 && nextIdx < problems.length) {
+                selectProblem(nextIdx);
+            }
+        }
+
+        function checkAnswerEquivalence(userVal, correctVal) {
+            if (!userVal || !correctVal) return false;
+            const uNorm = userVal.toString().trim().replace(/\s+/g, '');
+            const cNorm = correctVal.toString().trim().replace(/\s+/g, '');
+            return uNorm === cNorm;
+        }
+
+        function submitAnswer(event) {
+            event.preventDefault();
+            const p = problems[activeProblemIndex];
+            const state = attemptsState[p.id];
+            const answerInput = document.getElementById('student-answer');
+            const userVal = answerInput.value.trim();
+
+            if (!userVal) {
+                showToast("Please enter an answer before submitting.", "warning");
+                return;
+            }
+
+            state.userAnswer = userVal;
+            state.attemptsUsed = (state.attemptsUsed || 0) + 1;
+            const isCorrect = checkAnswerEquivalence(userVal, p.answer);
+
+            if (isCorrect) {
+                state.status = 'solved';
+                showToast("Correct Answer!", "success");
+            } else {
+                state.attemptsLeft -= 1;
+                if (state.attemptsLeft <= 0) {
+                    state.status = 'failed';
+                    showToast("Incorrect. No remaining attempts.", "error");
+                } else {
+                    showToast("Incorrect! Double check your math and try 1 last attempt.", "warning");
+                }
+            }
+
+            updateStats();
+            renderProblemList();
+            loadActiveProblem();
+        }
+
+        function formatSecs(totSec) {
+            const m = Math.floor(totSec / 60);
+            const s = totSec % 60;
+            return `${m}m ${s}s`;
+        }
+
+        function updateStats() {
+            let solvedCount = 0;
+            let failedCount = 0;
+            let grandTimeSec = 0;
+            let totalAttemptsCount = 0;
+
+            Object.values(attemptsState).forEach(st => {
+                if (st.status === 'solved') solvedCount++;
+                if (st.status === 'failed') failedCount++;
+                grandTimeSec += (st.timeSpentSec || 0);
+                totalAttemptsCount += (st.attemptsUsed || 0);
+            });
+
+            const total = problems.length;
+            const accuracy = total > 0 ? Math.round((solvedCount / total) * 100) : 0;
+            const avgAttempts = total > 0 ? (totalAttemptsCount / total).toFixed(1) : '0.0';
+
+            document.getElementById('score-display').textContent = `${solvedCount} / ${total}`;
+            document.getElementById('accuracy-display').textContent = `${accuracy}%`;
+            document.getElementById('stat-solved').textContent = solvedCount;
+            document.getElementById('stat-failed').textContent = failedCount;
+            document.getElementById('stat-total-time').textContent = formatSecs(grandTimeSec);
+            document.getElementById('stat-avg-attempts').textContent = avgAttempts;
+
+            const progressWidth = total > 0 ? (solvedCount / total) * 100 : 0;
+            document.getElementById('progress-bar-fill').style.width = `${progressWidth}%`;
+        }
+
+        // Highly Compact Token Generator (Pipe/CSV Compressed Base64)
+        function generateClassroomTurnInCode() {
+            if (sessionStorage.getItem('math_student_fname')) {
+                document.getElementById('student-first-name').value = sessionStorage.getItem('math_student_fname');
+            }
+            if (sessionStorage.getItem('math_student_lname')) {
+                document.getElementById('student-last-name').value = sessionStorage.getItem('math_student_lname');
+            }
+
+            updateTurnInToken();
+            document.getElementById('turnin-modal').classList.remove('hidden');
+        }
+
+        function updateTurnInToken() {
+            const firstName = document.getElementById('student-first-name')?.value.trim() || '';
+            const lastName = document.getElementById('student-last-name')?.value.trim() || '';
+
+            if (firstName) sessionStorage.setItem('math_student_fname', firstName);
+            if (lastName) sessionStorage.setItem('math_student_lname', lastName);
+
+            const fullName = (firstName || lastName) ? `${lastName}, ${firstName}` : `Student-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            let solvedCount = 0;
+            let totalTime = 0;
+            let detailsArr = [];
+
+            problems.forEach((p, idx) => {
+                const st = attemptsState[p.id] || { status: 'unattempted', attemptsUsed: 0, timeSpentSec: 0 };
+                if (st.status === 'solved') solvedCount++;
+                totalTime += (st.timeSpentSec || 0);
+
+                const statusCode = st.status === 'solved' ? 'S' : st.status === 'failed' ? 'F' : 'U';
+                detailsArr.push(`Q${idx + 1}:${statusCode}:${st.attemptsUsed || 0}:${st.timeSpentSec || 0}s`);
+            });
+
+            // Ultra-Compact Pipe-Delimited String: Name|Score/Total|TotalTime|Details CSV
+            const compactRawPayload = `${fullName}|${solvedCount}/${problems.length}|${totalTime}s|${detailsArr.join(';')}`;
+            
+            // Base64 encode for ultra-short single line token
+            const compactToken = `MATH-GRADE::${btoa(compactRawPayload)}`;
+
+            const tokenBox = document.getElementById('turnin-code-text');
+            if (tokenBox) tokenBox.value = compactToken;
+
+            // Render stats preview inside modal
+            const statsBox = document.getElementById('token-stats-summary');
+            if (statsBox) {
+                statsBox.innerHTML = `
+                    <div class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1 mb-1 font-bold">
+                        <span>Score: ${solvedCount}/${problems.length} (${Math.round((solvedCount/problems.length)*100)}%)</span>
+                        <span>Total Time: ${formatSecs(totalTime)}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[11px] text-gray-500">
+                        ${detailsArr.map(d => `<div>• ${d}</div>`).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function copyTurnInToken() {
+            const firstName = document.getElementById('student-first-name')?.value.trim();
+            const lastName = document.getElementById('student-last-name')?.value.trim();
+
+            if (!firstName || !lastName) {
+                showToast("Please enter both your First and Last Name before copying.", "warning");
+                return;
+            }
+
+            const tokenText = document.getElementById('turnin-code-text');
+            tokenText.select();
+            document.execCommand('copy');
+            showToast("Compact Grade Token copied! Paste in Google Classroom private comment.", "success");
+            document.getElementById('turnin-modal').classList.add('hidden');
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.className = "fa-solid fa-sun text-amber-400 text-lg";
+            } else {
+                icon.className = "fa-solid fa-moon text-lg";
+            }
+        }
+
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            let colors = "bg-emerald-600 text-white";
+            if (type === "success") colors = "bg-emerald-600 text-white";
+            if (type === "error") colors = "bg-rose-600 text-white";
+            if (type === "warning") colors = "bg-amber-600 text-white";
+
+            toast.className = `px-4 py-3 rounded-xl shadow-lg font-semibold text-xs flex items-center gap-2 transition-all transform translate-y-2 opacity-0 ${colors}`;
+            toast.innerHTML = `<span>${msg}</span>`;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
